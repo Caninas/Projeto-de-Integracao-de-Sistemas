@@ -6,18 +6,14 @@ var logger = require('morgan');
 app.use(logger('dev'));
 
 function selectProxyHost(req) {
-    if (req.path.startsWith('/Cadastro'))
+    if (req.path.startsWith('/sensor'))
         return 'http://localhost:8080/';
-    else if (req.path.startsWith('/vagas'))
-        return 'http://localhost:8090/';
-    else if (req.path.startsWith('/creditos'))              // add
-        return 'http://localhost:8100/';
-    else if (req.path.startsWith('/cobranca'))              // add
-        return 'http://localhost:8110/';
-    else if (req.path.startsWith('/statusvagas'))              // add
-        return 'http://localhost:8120/';
-    else if (req.path.startsWith('/controlevagas'))
-        return 'http://localhost:8130/';
+    // else if (req.path.startsWith('/led'))
+    //     return 'http://localhost:8090/';
+    // else if (req.path.startsWith('/motor'))              // add
+    //     return 'http://localhost:8100/';
+    // else if (req.path.startsWith('/config'))              // add
+    //     return 'http://localhost:8110/';
     else return null;
 }
 
