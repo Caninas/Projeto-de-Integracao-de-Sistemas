@@ -7,13 +7,7 @@ app.use(logger('dev'));
 
 function selectProxyHost(req) {
     if (req.path.startsWith('/sensor'))
-        return 'http://localhost:8080/';
-    // else if (req.path.startsWith('/led'))
-    //     return 'http://localhost:8090/';
-    // else if (req.path.startsWith('/motor'))              // add
-    //     return 'http://localhost:8100/';
-    // else if (req.path.startsWith('/config'))              // add
-    //     return 'http://localhost:8110/';
+        return 'http://192.168.0.25:8080/';
     else return null;
 }
 
