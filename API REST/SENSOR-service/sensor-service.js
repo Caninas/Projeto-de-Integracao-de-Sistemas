@@ -16,13 +16,18 @@ const MongoClient = require('mongodb').MongoClient
 const uri = 'mongodb+srv://pedrocaninas:rtSHHDWEKTCqQMz9@cluster0.kawxe5x.mongodb.net/?retryWrites=true&w=majority'
 const database_name = 'ProjetoFinal'
 const collection_name= 'HistoricoSensor'
-const instAxios = axios.create({
-    baseURL: 'http://localhost:8000/'
+const selfAxios = axios.create({
+    baseURL: 'http://localhost:8000/'       //* IP PROPRIO
+})
+const EmbarAxios = axios.create({
+    baseURL: 'http://192.168.0.42:8070/'       //* IP EMBARCADO
 })
 
 var db
 var sensor
 var cache_historico = []
+var ultima_leitura = 0
+var sensibilidade = 500
 
 MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, async (error, client) => {
     if(error) {
@@ -59,17 +64,14 @@ async function CriarSensorNoBanco() {                              //* OK
 }
 
 // Ler dado do sensor
-app.get('/sensor', async (req, res, next) => {              //! ALTERAR
-    res.send({
-        status: "Online",
-        sensibilidade: 100,
-        luminosidade_atual: 378
-    })
+app.get('/sensor', (req, res, next) => {              //* OK
+    res.send(ultima_leitura)
 })
 
 
 // Ler historico do sensor e guarda cache
 app.get('/sensor/historico', async (req, res, next) => {     //* OK
+    console.log("get historico")
     sensor = await db.findOne({ _id: "sensor" })
     
     // junta cache no historico do banco
@@ -77,7 +79,6 @@ app.get('/sensor/historico', async (req, res, next) => {     //* OK
     cache_historico = []
 
     res.send(sensor.hist)
-    console.log(sensor.hist)
 
     // atualiza o historico no banco
     db.updateOne({ _id: "sensor" }, {
@@ -87,41 +88,45 @@ app.get('/sensor/historico', async (req, res, next) => {     //* OK
     })
 })
 
+app.get('/sensor/configuracao', (req, res, next) => {              //* OK
+    res.send(`${sensibilidade}`)
+})
 // Muda configuraçao do embarcado               led_liga = luz > sensibilidade ; velocidade Motor
-app.post('/sensor/sensibilidade', async (req, res, next) => {       //! ALTERAR
+app.post('/sensor/configuracao', async (req, res, next) => {       //! ALTERAR
     sensibilidade = req.body.sensibilidade
 
     // mandar para o embarcado a sensibilidade
     // webserver... fazer um post la axios
     // altera a variavel sensibilidade e retorna resposta ok
-
-    db.updateOne({ _id: "sensor" }, {
-        $set: {
-            sensibilidade: sensibilidade
-        }
-    }) 
+    //EmbarAxios.post('/configurar', [sensibilidade])
+    // db.updateOne({ _id: "sensor" }, {
+    //     $set: {
+    //         sensibilidade: sensibilidade
+    //     }
+    // }) 
 })
 
 
-// Recebe leitura, guarda em cache e chegando em um limite chama POST
+// Recebe leitura, guarda em cache e chegando em um limite chama POST (Não é usado no caso, o APP que faz as requisiçoes de acordo com a demanda)
+// se a demanda fosse maior o embarcado enviaria as leituras e o APP leria da API diretamente
 app.put('/sensor', async (req, res, next) => {                  //* OK
-
-    if (req.body.leitura){
+    if (req.body){
+        ultima_leitura = req.body
         // Pega o horario atual e coloca 0 na frente se o numero tiver tamanho 1
         data = new Date(Date.now())
 
-        let hora = (data.getHours().toString()).length.length == 2 ? data.getHours() : `0${data.getHours()}`
+        let hora = (data.getHours().toString()).length == 2 ? data.getHours() : `0${data.getHours()}`
         let minutos = (data.getMinutes().toString()).length == 2 ? data.getMinutes() : `0${data.getMinutes()}`
         let segundos = (data.getSeconds().toString()).length == 2 ? data.getSeconds() : `0${data.getSeconds()}`
         
         data = `${hora}:${minutos}:${segundos}`
 
         // coloca no cache formatado
-        cache_historico.push([data, req.body.leitura])
+        cache_historico.push([data, req.body.luminosidade])
 
         // caso o cache passar dos 100 itens eles sao guardados (atraves do metodo get que faz isso automaticamente por motivos de consistencia) 
         if (cache_historico.length >= 100) {
-            instAxios.get("sensor/historico")
+            selfAxios.get("sensor/historico")
         }
 
         res.send("Leitura recebida!")

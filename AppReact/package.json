@@ -26,7 +26,7 @@
     "react-native-shadow-2": "^7.0.6",
     "react-native-svg": "13.4.0",
     "react-native-tab-view": "^3.3.3",
-    "react-native-table-component": "^1.2.2",
+    "react-native-table-component": "github:sturmenta/react-native-table-component#e1582aaba92b7e070c31c98b116eea9c23e17f6d",
     "react-native-web": "^0.18.10",
     "react-navigation-stack": "^2.10.4"
   },

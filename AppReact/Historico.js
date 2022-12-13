@@ -46,7 +46,6 @@ export default class HistoricoScreen extends React.Component {
 const styles = StyleSheet.create({
     container_header: {
         height: 40,
-        flex:2,
         backgroundColor: '#6F7BD9',
     },
     head: {
