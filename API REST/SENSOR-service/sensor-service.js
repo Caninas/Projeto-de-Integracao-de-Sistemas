@@ -26,7 +26,12 @@ const EmbarAxios = axios.create({
 var db
 var sensor
 var cache_historico = []
-var ultima_leitura = 0
+var ultima_leitura = {
+    status: "Offline",
+    sensibilidade: 0,
+    luminosidade: 0,
+}
+
 var sensibilidade = 500
 
 MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, async (error, client) => {
@@ -88,13 +93,17 @@ app.get('/sensor/historico', async (req, res, next) => {     //* OK
     })
 })
 
-app.get('/sensor/configuracao', (req, res, next) => {              //* OK
-    res.send(`${sensibilidade}`)
+app.get('/sensor/configuracao', (req, res, next) => {   //* OK
+    res.status(200).send({
+        sensibilidade: sensibilidade
+    })
 })
+
 // Muda configuraçao do embarcado               led_liga = luz > sensibilidade ; velocidade Motor
 app.post('/sensor/configuracao', async (req, res, next) => {       //! ALTERAR
+    console.log(sensibilidade)
     sensibilidade = req.body.sensibilidade
-
+    console.log(sensibilidade)
     // mandar para o embarcado a sensibilidade
     // webserver... fazer um post la axios
     // altera a variavel sensibilidade e retorna resposta ok

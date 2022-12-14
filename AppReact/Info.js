@@ -56,12 +56,11 @@ export default class InfoScreen extends React.Component {
             i += 1
             let dado_sensor
             console.log("atualizar", i)
+            if (!this.state.atualizar) break        // cancelar a funçao no caso de mudança rapido do status
             try {
                 const response = await fetch(`${this.state.urlAPI}/sensor`)
-                dado_sensor = await response.json();
-                if (this.intervalo == 3000) {                                  // ao conseguir se conectar apos um erro, muda o timer de volta
-                    this.intervalo = 500
-                }
+                dado_sensor = await response.json()
+                if (!this.state.atualizar) break
             } catch (error) {
                 console.log(error)
                 if (this.intervalo != 3000) {
@@ -71,19 +70,22 @@ export default class InfoScreen extends React.Component {
 
             
             if (dado_sensor && this.state.atualizar) {
+                if (dado_sensor.status == "Offline") {      // diminui o ritmo de requisiçoes caso API não tenha conexao com embarcado
+                    this.intervalo = 3000
+                } else {
+                    this.intervalo = 500
+                }
+
                 this.setState({
                     status: dado_sensor.status,
                     sensibilidade: dado_sensor.sensibilidade,
                     luminosidade_atual: dado_sensor.luminosidade,
                 })
-            } else {
-                this.setState({
-                    status: "Offline",
-                    sensibilidade: 0,
-                    luminosidade_atual: 0,
-                })
             }
-            await new Promise(resolve => setTimeout(resolve, this.intervalo));
+            await new Promise(resolve => setTimeout(resolve, this.intervalo))
+            // while (this.state.atualizar && (await new Promise(resolve => setTimeout(resolve, this.intervalo))).then((result) => {
+            //     return result == '' ? result ==''
+            // })) {}
         }
 
         this.setState({
@@ -138,13 +140,6 @@ export default class InfoScreen extends React.Component {
 }
 
 const styles = StyleSheet.create({
-    input: {
-        borderWidth: 2,
-        borderRadius: 6,
-        padding: 10,
-        width: "110%",
-        height: 60
-    },
     container: {
         justifyContent: 'center',
         padding: 60,
@@ -152,10 +147,6 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 20,
         textAlign: "left"
-    },
-    reload: {
-        width: 30,
-        height: 30,
     },
     title: {
         padding: 30,

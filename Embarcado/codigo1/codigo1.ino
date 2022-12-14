@@ -3,25 +3,21 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 
-#include <ArduinoHttpClient.h>
+#include <ArduinoJson.h>
 
-const int stepsPerRevolution = 500;
+const int stepsPerRevolution = 32;
 int passos = 50;                     //Passos a cada acionamento do botao  
 
-int luminosidade;
-int sensibilidade;
-
-Stepper myStepper(stepsPerRevolution, D1, D3, D2, D4);  
+int luminosidade = 0;
+int sensibilidade = 0;
+Stepper myStepper(stepsPerRevolution, D1,  D3, D2, D4);  
 
 char ssid[13] = "PEDRO_2.4GHz";
 char password[9] = "51037465";
 
-int porta_server = 8070;
-
-//char ipAPI[14] = "192.168.0.25";
-//int portaAPI = ":8000";
 #define API_IP "192.168.0.25:8000"
 
+int porta_server = 8070;
 ESP8266WebServer server(porta_server); // server API
 
 void setup() {
@@ -41,21 +37,20 @@ void setup() {
   Serial.print(":"); 
   Serial.println(porta_server); 
 
-  //server.on("/info", HTTP_PUT, PUTinfo);
-  //server.on("/configurar", HTTP_POST, Configurar);
-  //server.begin();
-
   myStepper.setSpeed(60);
 }
 
 void loop() {
   server.handleClient();
+
   luminosidade = analogRead(A0);
 
-  PUTinfo();
-  Configuracoes();
+  Serial.println(luminosidade);
+  Serial.println(sensibilidade);
 
-  //Serial.println(luminosidade);
+  Configuracoes();
+  PUTinfo();
+
   if (luminosidade >= sensibilidade) {
     myStepper.step(passos); 
     digitalWrite(D8, HIGH);
@@ -78,8 +73,18 @@ void Configuracoes() {
   int httpCode = http.GET();
 
   if (httpCode > 0) {
-    Serial.println(http.getString().toInt());
-    sensibilidade = http.getString().toInt();
+    const int capacity = JSON_OBJECT_SIZE(4);
+    StaticJsonDocument<capacity> doc;
+
+    DeserializationError err = deserializeJson(doc, http.getString());
+    if (err) {
+      Serial.print(F("deserializeJson() failed with code "));
+      Serial.println(err.f_str());
+
+    } else {
+      String str = String(doc["sensibilidade"]);
+      sensibilidade = str.toInt();
+    }
   }
 }
 
