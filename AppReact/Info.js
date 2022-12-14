@@ -16,9 +16,9 @@ export default class InfoScreen extends React.Component {
             status: "Offline",
             luminosidade_atual: 0,
             sensibilidade: 0,
-            baseURL: 'http://192.168.0.25:8000/',        //* IP DA API
+            urlAPI: props.state.urlAPI,        //* IP DA API
             Axios: axios.create({
-                baseURL: 'http://192.168.0.25:8000/'        //* IP DA API
+                baseURL: props.state.urlAPI        //* IP DA API
             }),
             atualizar: 1,
             //intervalo: setInterval(this.atualizar, 500),    // atualiza os dados a cada meio segundo
@@ -57,7 +57,7 @@ export default class InfoScreen extends React.Component {
             let dado_sensor
             console.log("atualizar", i)
             try {
-                const response = await fetch(`${this.state.baseURL}sensor`)
+                const response = await fetch(`${this.state.urlAPI}/sensor`)
                 dado_sensor = await response.json();
                 if (this.intervalo == 3000) {                                  // ao conseguir se conectar apos um erro, muda o timer de volta
                     this.intervalo = 500
@@ -101,7 +101,7 @@ export default class InfoScreen extends React.Component {
         let lista
         console.log("get historico")
         try {
-            const response = await fetch(`${this.state.baseURL}sensor/historico`)
+            const response = await fetch(`${this.state.urlAPI}/sensor/historico`)
             console.log(response)
             lista = await response.json();
         } catch (error) {
