@@ -5,17 +5,17 @@
 
 #include <ArduinoJson.h>
 
-const int stepsPerRevolution = 32;
+const int stepsPerRevolution = 500;
 int passos = 50;                     //Passos a cada acionamento do botao  
 
 int luminosidade = 0;
 int sensibilidade = 0;
-Stepper myStepper(stepsPerRevolution, D1,  D3, D2, D4);  
+Stepper myStepper(stepsPerRevolution, D1, D2, D3, D4);  
 
-char ssid[13] = "PEDRO_2.4GHz";
-char password[9] = "51037465";
+char ssid[25] = "DESKTOP-8I3FOFR 7262";
+char password[9] = "00kV{171";
 
-#define API_IP "192.168.0.25:8000"
+#define API_IP "150.162.150.124:8000"
 
 int porta_server = 8070;
 ESP8266WebServer server(porta_server); // server API
@@ -47,9 +47,11 @@ void loop() {
 
   Serial.println(luminosidade);
   Serial.println(sensibilidade);
-
+  Serial.println("Configurando");
   Configuracoes();
+  Serial.println("PUTinfo");
   PUTinfo();
+  Serial.println("Tudo certo");
 
   if (luminosidade >= sensibilidade) {
     myStepper.step(passos); 
@@ -59,8 +61,7 @@ void loop() {
     digitalWrite(D8, LOW);
   }
 
-  
-  delay(300);
+  delay(700);
 }
 
 void Configuracoes() {
